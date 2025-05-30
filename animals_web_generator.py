@@ -1,3 +1,4 @@
+
 import data_fetcher
 from bs4 import BeautifulSoup
 
