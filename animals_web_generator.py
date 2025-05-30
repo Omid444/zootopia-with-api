@@ -1,41 +1,20 @@
-import requests
+import data_fetcher
 from bs4 import BeautifulSoup
 
 
-API_KEY = '9TZ4CebQUwCg7QWDtNgDCQ==i4fRE9M3wprRsMzq'
 
-
-def get_characteristics(animals_info):
-    """Get animals characteristics and turn it to suitable text"""
-    output =''
-    for animal in animals_info:
-        try:
-            name = animal['name']
-            diet = animal['characteristics']['diet']
-            location = animal['locations']
-            animal_type = animal['characteristics']['type']
-            animal_object = (name, diet, location, animal_type)
-            if all(animal_object):
-                single_animal_info = serialize_animal(animal_object)
-                output += single_animal_info
-                print('output',output)
-            else:
-                continue
-        except KeyError:
-            continue
-    return output
-
-
-def serialize_animal(animal_obj):
-    """This function support get_characteristics() to make suitable text"""
-    name, diet, location, animal_type = animal_obj
-    tag_start = '<li class="cards__item">'
-    title = f'<div class="card__title">{name}</div>'
-    paragraph = f"<p class=\"card__text\"><strong>Diet:</strong> {diet}<br/>"\
-                f"<strong>Location:</strong> {location}<br/>"\
-                f"<strong>Type:</strong> {animal_type}<br/></p>"
-    tag_end = '</li>'
-    final_text = tag_start + title + paragraph + tag_end
+def serialize_animal(animals_list):
+    """This function support dict from data fetcher to make suitable text"""
+    final_text = ''
+    for animal in animals_list:
+        tag_start = '<li class="cards__item">'
+        title = f'<div class="card__title">{animal['name']}</div>'
+        paragraph = f"<p class=\"card__text\"><strong>taxonomy:</strong> {animal['name']}<br/>"\
+                    f"<strong>Location:</strong> {animal['locations']}<br/>"\
+                    f"<strong>characteristics:</strong> {animal['characteristics']}<br/></p>"
+        tag_end = '</li>'
+        text = tag_start + title + paragraph + tag_end
+        final_text += text
     return final_text
 
 
@@ -56,25 +35,21 @@ def write_html(file_path, index):
 
 
 def main():
-    animal_name = input('Enter a name of an animal:')
-    api_url = f'https://api.api-ninjas.com/v1/animals?name={animal_name}'
-    response = requests.get(api_url, headers={'X-Api-Key': API_KEY})
-    if response.status_code == requests.codes.ok:
-        animals_data = response.json()
-        print(animals_data)
-        animals = get_characteristics(animals_data)
-        if animals:
-            index = read_html('animals_template.html', animals)
-            write_html('animals.html', index)
-            print('Website was successfully generated to the file animals.html.')
-        else:
-            print(f'The animal {animal_name} does not exist')
-            header = f"<h2 style='font-family: sans-serif;'>The animal {animal_name} doesn't exist.</h2>"
-            index = read_html('animals_template.html', header)
-            write_html('animals.html', index )
-    else:
-        print("Error:", response.status_code, response.text)
 
+    animal_name = input('Enter a name of an animal:')
+
+    data = data_fetcher.fetch_data(animal_name)
+
+    if data:
+        animals_info = serialize_animal(data)
+        index = read_html('animals_template.html', animals_info)
+        write_html('animals.html', index)
+        print('Website was successfully generated to the file animals.html.')
+    else:
+        print(f'The animal {animal_name} does not exist')
+        header = f"<h2 style='font-family: sans-serif;'>The animal {animal_name} doesn't exist.</h2>"
+        index = read_html('animals_template.html', header)
+        write_html('animals.html', index )
 
 
 if __name__ == "__main__":
