@@ -41,7 +41,7 @@ def serialize_animal(animal_obj):
 
 def read_html(file_path, animals_info):
     """Read html file and return needed content"""
-    with open(file_path, "r") as html_file:
+    with open(file_path, "r", encoding="utf-8") as html_file:
         index = html_file.read()
         soup = BeautifulSoup(index, 'html.parser')
         target = soup.find('ul', class_="cards")
@@ -51,7 +51,7 @@ def read_html(file_path, animals_info):
 
 def write_html(file_path, index):
     """Write text into html"""
-    with open(file_path, "w") as html_file:
+    with open(file_path, "w", encoding="utf-8") as html_file:
         html_file.write(index)
 
 
@@ -63,9 +63,15 @@ def main():
         animals_data = response.json()
         print(animals_data)
         animals = get_characteristics(animals_data)
-        index = read_html('animals_template.html', animals)
-        write_html('animals.html', index)
-        print('Website was successfully generated to the file animals.html.')
+        if animals:
+            index = read_html('animals_template.html', animals)
+            write_html('animals.html', index)
+            print('Website was successfully generated to the file animals.html.')
+        else:
+            print(f'The animal {animal_name} does not exist')
+            header = f"<h2 style='font-family: sans-serif;'>The animal {animal_name} doesn't exist.</h2>"
+            index = read_html('animals_template.html', header)
+            write_html('animals.html', index )
     else:
         print("Error:", response.status_code, response.text)
 
